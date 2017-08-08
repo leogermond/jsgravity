@@ -1,0 +1,73 @@
+<html>
+<head>
+
+</head>
+<body>
+    <script src="math.min.js"></script>
+    <script src="equations.js"></script>
+    <script>
+        function elementDim(e) {
+            return [e.width, e.height];
+        }
+
+        function UniverseRenderer(canvas, u) {
+            this.canvas = canvas;
+            this.ctx = canvas.getContext("2d");
+            this.ctx.translate(0.5, 0.5);
+            this.u = u;
+            this.zoom_factor = 1;
+            this.zoom_center = [0, 0];
+            
+            this.clear = function() {
+                this.ctx.fillStyle = "black";
+                var d = elementDim(this.canvas);
+                this.ctx.fillRect(0, 0, d[0], d[1]);
+            };
+            
+            this.drawBody = function(p, color) {
+                console.log("draw at "+p+" color "+color);
+                
+                var prc = math.add(math.divide(elementDim(this.canvas), 2),
+                                   math.divide(
+                                       math.subtract(p, this.zoom_center),
+                                       this.zoom_factor));
+
+                this.ctx.strokeStyle = color;
+                this.ctx.beginPath();
+                this.ctx.moveTo(prc.get([0]) - 3, prc.get([1]));
+                this.ctx.lineTo(prc.get([0]) + 3, prc.get([1]));
+                this.ctx.stroke();
+                
+                this.ctx.beginPath();
+                this.ctx.moveTo(prc.get([0]), prc.get([1]) - 3);
+                this.ctx.lineTo(prc.get([0]), prc.get([1]) + 3);
+                this.ctx.stroke();
+            };
+
+            this.tick = function() {
+                this.u.tick();
+                var colors = ["white", "red", "yellow", "lightgreen"];
+                this.clear();
+                var uthis = this;
+                this.u.forEachBody(function(b) {
+                    uthis.drawBody(math.multiply([1, 0, 0], b.psa), colors.pop());
+                });
+            };
+        }
+    
+        document.getElementsByTagName("body")[0].onload = function() {
+            var c = document.createElement("canvas");
+            document.getElementsByTagName("body")[0].appendChild(c);
+            c.width = 400;
+            c.height = 400;
+            var ur = new UniverseRenderer(c, new Universe());
+            ur.u.bodies.push(new Body([0, 0], [0, 0], [0, 0], 1e11));
+            ur.u.bodies.push(new Body([100, 100], [-0.15, 0.1], [0, 0], 100));
+            ur.u.bodies.push(new Body([-100, 0], [-0.1, -0.15], [0, 0], 100));
+            ur.u.bodies.push(new Body([0, -150], [-0.15, -0.1], [0, 0], 100));
+            ur.tick();
+            setInterval(function() { ur.tick(); }, 1/24);
+        };
+    </script>
+</body>
+</html>
