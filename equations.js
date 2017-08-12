@@ -4,13 +4,17 @@ function Body(p, s, a, m) {
 	this.psa = math.matrix([ p, s, a ]);
 	this.m = m;
 	
-	this.tick = function(f) {
-		
+	this.tick = function(f, t) {
         if(f === undefined) {
 			f = [0, 0];
 		}
-		this.psa = math.multiply([[ 1, 1, 0, 0 ],
-								  [ 0, 1, 1, 1 ],
+
+        if(t === undefined) {
+            t = 1;
+        }
+
+		this.psa = math.multiply([[ 1, t, 0.5*t*t, 0.5*t*t ],
+								  [ 0, 1, t, t ],
 								  [ 0, 0, 1, 0 ]],
 								  math.concat(
 									this.psa,
@@ -38,7 +42,11 @@ function Universe(bodies, G) {
         math.forEach(this.bodies, fn);
     };
     
-    this.tick = function() {
+    this.tick = function(t) {
+        if(t === undefined) {
+            t = 1e-3;
+        }
+
         var nb_bodies = this.bodies.length;
         
         var gf = [];
@@ -55,7 +63,7 @@ function Universe(bodies, G) {
                 var d = math.norm(sub);
                 // handle collision
                 if(d != 0) {
-                    var gfij = math.divide(math.multiply(this.G * (b[0].m * b[1].m) / (d*d), sub), d);
+                    var gfij = math.multiply(this.G * (b[0].m * b[1].m) / (d*d*d), sub);
                     gf[i] = math.add(gf[i], gfij);
                     gf[j] = math.add(gf[j], math.unaryMinus(gfij));
                 }
@@ -63,7 +71,7 @@ function Universe(bodies, G) {
         }
 
         for(var i = 0; i < nb_bodies; i++) {
-            this.bodies[i].tick(gf[i]);
+            this.bodies[i].tick(gf[i], t);
         }
     };
     
