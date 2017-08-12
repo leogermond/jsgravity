@@ -42,11 +42,7 @@ function Universe(bodies, G) {
         math.forEach(this.bodies, fn);
     };
     
-    this.tick = function(t) {
-        if(t === undefined) {
-            t = 1e-3;
-        }
-
+    this.gravitation = function(t) {
         var nb_bodies = this.bodies.length;
         
         var gf = [];
@@ -70,8 +66,34 @@ function Universe(bodies, G) {
             }
         }
 
+        return gf;
+    };
+
+    this.tick = function(t) {
+        if(t === undefined) {
+            t = 1e-3;
+        }
+
+        var gf = this.gravitation(t);
+        var nb_bodies = this.bodies.length;
+        var islow = 1;
         for(var i = 0; i < nb_bodies; i++) {
-            this.bodies[i].tick(gf[i], t);
+            if(math.norm(gf[i]) > this.bodies[i].m*1000) {
+                islow = math.norm(gf[i])/(this.bodies[i].m*1000);
+            }
+        }
+
+        console.log(islow);
+
+        for(var j = 0; j < islow; j++) {
+            var tslow = t / islow;
+            if(tslow != t) {
+                gf = this.gravitation(tslow);
+            }
+
+            for(var i = 0; i < nb_bodies; i++) {
+                this.bodies[i].tick(gf[i], tslow);
+            }
         }
     };
     
