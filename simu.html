@@ -25,8 +25,6 @@
             };
             
             this.drawBody = function(p, color) {
-                console.log("draw at "+p+" color "+color);
-                
                 var prc = math.add(math.divide(elementDim(this.canvas), 2),
                                    math.divide(
                                        math.subtract(p, this.zoom_center),
@@ -44,11 +42,11 @@
                 this.ctx.stroke();
             };
 
-            this.tick = function() {
-                for(var i = 0; i < 100; i++) {
-                    this.u.tick();
+            this.tick = function(t) {
+                for(var i = 0; i < 1; i++) {
+                    this.u.tick(t);
                 }
-                var colors = [ "purple", "white", "green", "cyan", "violet", "red", "yellow", "lightgreen", "orange", "blue"];
+                var colors = [ "gold", "purple", "white", "green", "cyan", "violet", "red", "yellow", "lightgreen", "orange", "blue"];
                 //this.clear();
                 var uthis = this;
                 this.u.forEachBody(function(b) {
@@ -64,18 +62,19 @@
             c.height = 600;
             var ur = new UniverseRenderer(c, new Universe());
             ur.clear();
-            ur.u.bodies.push(new Body([0, 0], [0, 0], [0, 0], 1e24));
-            /*ur.u.bodies.push(new Body([0, 300e3], [-16e3, 0], [0, 0], 100));
-            ur.u.bodies.push(new Body([0, 300e3], [-15e3, 0], [0, 0], 100));
-            ur.u.bodies.push(new Body([0, 300e3], [-14e3, 0], [0, 0], 100));
-            ur.u.bodies.push(new Body([0, 300e3], [-12e3, 0], [0, 0], 100));
-            ur.u.bodies.push(new Body([0, 300e3], [-10e3, 0], [0, 0], 100));
-            ur.u.bodies.push(new Body([0, 300e3], [-8e3, 0], [0, 0], 100));
-            ur.u.bodies.push(new Body([0, 300e3], [-6e3, 0], [0, 0], 100));
-            ur.u.bodies.push(new Body([0, 300e3], [-4e3, 0], [0, 0], 100));*/
-            ur.u.bodies.push(new Body([0, 300e3], [-2e3, 0], [0, 0], 100));
+            ur.u.bodies.push(new Body([0, 0], [0, 0], [0, 0], 6e27));
+            ur.u.bodies.push(new Body([0, 300e3], [-12e5, 0], [0, 0], 100e3));
+            ur.u.bodies.push(new Body([0, 300e3], [11e5, 0], [0, 0], 100e3));
+            ur.u.bodies.push(new Body([0, 300e3], [-10e5, 0], [0, 0], 100e3));
+            ur.u.bodies.push(new Body([0, 300e3], [9e5, 0], [0, 0], 100e3));
+            ur.u.bodies.push(new Body([0, 300e3], [-8e5, 0], [0, 0], 100e3));
+            ur.u.bodies.push(new Body([0, 300e3], [7e5, 0], [0, 0], 100e3))
+            ur.u.bodies.push(new Body([0, 300e3], [-6e5, 0], [0, 0], 100e3));
+            ur.u.bodies.push(new Body([0, 300e3], [4e5, 0], [0, 0], 100e3));
+            ur.u.bodies.push(new Body([0, 300e3], [-2e5, 0], [0, 0], 100e3));
+            ur.u.bodies.push(new Body([0, 300e3], [5e5, 0], [0, 0], 1000e3));
             ur.tick();
-            setInterval(function() { ur.tick(); }, 1/10);
+            setInterval(function() { ur.tick(1e-4); }, 1);
         };
     </script>
 </body>
