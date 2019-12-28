@@ -1,4 +1,4 @@
-// This file depends on math.js
+// This file depends on math.js and lodash.js
 
 var g_log = false;
 
@@ -11,7 +11,7 @@ function log(m) {
 function Body(p, s, a, m) {
 	this.psa = math.matrix([ p, s, a ]);
     this.m = m;
-	
+
     this.getPSA = function(dim) {
         return this.psa.toArray()[dim];
     };
@@ -22,6 +22,16 @@ function Body(p, s, a, m) {
 
     this.getS = function() {
         return this.getPSA(1);
+    };
+
+    this.limitS = function(max_norm) {
+        var s_norm = math.norm(this.getS());
+        if (s_norm > max_norm) {
+            var factor = max_norm / s_norm;
+            this.psa = math.multiply([[1, 0, 0],
+                                      [0, factor, 0],
+                                      [0, 0, 1]], this.psa);
+        }
     };
 
     this.getA = function() {
@@ -45,10 +55,43 @@ function Body(p, s, a, m) {
 									math.divide([f], this.m),
 									0));
 	};
-	
+
 	this.toString  = function() {
 		return "Body(" + this.psa.toString().slice(1, -1) + ", " + this.m + ")";
 	};
+
+    this.copy = function() {
+        return Body(this.getP(), this.getS(), this.getA(), this.m);
+    }
+}
+
+function collisionReduceP(b1, b2) {
+    if (math.norm(math.add(b1.getP(), math.unaryMinus(b2.getP()))) < 10) {
+        if (_.has(b1, 'hasCollided')) {
+            b1.hasCollided(b2);
+        }
+
+        if (_.has(b2, 'hasCollided')) {
+            b2.hasCollided(b1);
+        }
+
+        var larger, smaller;
+        if (b1.m >= b2.m) {
+            larger = b1;
+            smaller = b2;
+        } else {
+            larger = b2;
+            smaller = b1;
+        }
+
+        larger.m += smaller.m;
+        smaller.m = 0;
+        larger.psa = math.add(larger.psa,
+            math.multiply([[0, 0, 0],
+                           [0, smaller.m / larger.m, 0],
+                           [0, 0, 0]], smaller.psa));
+        smaller.psa = larger.psa;
+    }
 }
 
 function Universe(bodies, G) {
@@ -56,26 +99,26 @@ function Universe(bodies, G) {
         bodies = [];
     }
     this.bodies = bodies;
-    
+
     if(G === undefined) {
         G = 6.67e-11;
     }
     this.G = G;
-    
+
     this.forEachBody = function(fn) {
         math.forEach(this.bodies, fn);
     };
-    
+
     this.gravitation = function(t) {
         var nb_bodies = this.bodies.length;
-        
+
         var gf = [];
-        
+
         for(var i = 0; i < nb_bodies; i++) {
             gf.push(0);
         }
-        
-        for(var i = 0; i < nb_bodies; i++) {    
+
+        for(var i = 0; i < nb_bodies; i++) {
             for(var j = i + 1; j < nb_bodies; j++) {
                 var b = [this.bodies[i], this.bodies[j]];
                 var sub = math.subtract(b[1].getP(), b[0].getP());
@@ -97,8 +140,8 @@ function Universe(bodies, G) {
             t = 1e-3;
         }
 
-        var gf = this.gravitation(t);
         var nb_bodies = this.bodies.length;
+        var gf = this.gravitation(t);
         var islow = 1;
         for(var i = 0; i < nb_bodies; i++) {
             var b = this.bodies[i];
@@ -113,16 +156,28 @@ function Universe(bodies, G) {
 
         for(var j = 0; j < islow; j++) {
             var tslow = t / islow;
+
             if(tslow != t) {
                 gf = this.gravitation(tslow);
             }
 
-            for(var i = 0; i < nb_bodies; i++) {
-                this.bodies[i].tick(gf[i], tslow);
-            }
+            _.forEach(this.bodies, function(b1) {
+                b1.limitS(1e10);
+                _.forEach(this.bodies, function(b2) {
+                    collisionReduceP(b1, b2);
+                });
+            });
+
+            this.bodies = _.filter(this.bodies, 'm');
+
+            var i = 0;
+            _.forEach(this.bodies, function(b) {
+                b.tick(gf[i], tslow);
+                i++;
+            });
         }
     };
-    
+
     this.toString = function() {
         return "Universe({"+this.bodies.join(", ") + "})";
     };
