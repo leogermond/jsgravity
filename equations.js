@@ -1,5 +1,13 @@
 // This file depends on math.js
 
+var g_log = false;
+
+function log(m) {
+    if (g_log) {
+        console.log(m);
+    }
+}
+
 function Body(p, s, a, m) {
 	this.psa = math.matrix([ p, s, a ]);
     this.m = m;
@@ -100,7 +108,7 @@ function Universe(bodies, G) {
 
         islow = math.min(1e3, islow);
         if(islow != 1) {
-            console.log(islow);
+            log(islow);
         }
 
         for(var j = 0; j < islow; j++) {
