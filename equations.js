@@ -95,10 +95,10 @@ function Universe(bodies, G) {
         for(var i = 0; i < nb_bodies; i++) {
             var b = this.bodies[i];
             var v = math.max(math.norm(b.getS()), 1e3);
-            islow = math.max(islow, math.floor(math.pow(t * 1e4 * math.norm(gf[i]) / (b.m * v), 1.2)));
+            islow = math.max(islow, math.floor(t * 1e4 * math.norm(gf[i]) / (b.m * v)));
         }
 
-        islow = math.min(1e6, islow);
+        islow = math.min(1e3, islow);
         if(islow != 1) {
             console.log(islow);
         }
